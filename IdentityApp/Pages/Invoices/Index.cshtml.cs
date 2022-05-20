@@ -5,11 +5,13 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using IdentityApp;
 using IdentityApp.Data;
+using IdentityApp.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace IdentityApp.Pages.Invoices
 {
+    [AllowAnonymous]
     public class IndexModel : PageModel
     {
         private readonly IdentityApp.Data.ApplicationDbContext _context;
