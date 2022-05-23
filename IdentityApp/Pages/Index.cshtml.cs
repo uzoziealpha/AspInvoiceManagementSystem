@@ -1,7 +1,6 @@
 ﻿using IdentityApp.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using static IdentityApp.Models.Invoice;
 
 namespace IdentityApp.Pages
 {

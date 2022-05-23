@@ -10,17 +10,18 @@
 
         public string InvoiceOwner { get; set; }
 
-        public string CreatorId {get; set;}
+        public string CreatorId { get; set; }
 
         public InvoiceStatus Status { get; set; }
-
-        
-    public enum InvoiceStatus
-    { 
-            Submitted,
-            Approved,
-            Rejected
     }
+}
 
+namespace IdentityApp
+{
+    public enum InvoiceStatus
+    {
+        Submitted,
+        Approved,
+        Rejected
     }
 }

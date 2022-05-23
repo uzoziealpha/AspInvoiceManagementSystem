@@ -25,7 +25,7 @@ namespace IdentityApp.Pages.Invoices
         {
         }
 
-        public IList<Invoice> Invoice { get;set; } = default!;
+        public IList<Invoice> Invoice { get; set; }
 
         public async Task OnGetAsync()
         {
@@ -37,18 +37,15 @@ namespace IdentityApp.Pages.Invoices
             var isManager = User.IsInRole(Constants.InvoiceManagersRole);
             var isAdmin = User.IsInRole(Constants.InvoiceAdminRole);
 
-
             var currentUserId = UserManager.GetUserId(User);
 
 
-            if(isManager == false && isAdmin == false)
+            if (isManager == false && isAdmin == false)
             {
                 invoices = invoices.Where(i => i.CreatorId == currentUserId);
-                     
             }
 
             Invoice = await invoices.ToListAsync();
-            
         }
     }
 }
