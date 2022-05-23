@@ -15,10 +15,9 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
-    
+
+
 builder.Services.AddRazorPages();
-
-
 
 builder.Services.Configure<IdentityOptions>(options =>
 {
@@ -35,14 +34,32 @@ builder.Services.Configure<IdentityOptions>(options =>
 
 builder.Services.AddAuthorization(options =>
 {
+
     options.FallbackPolicy = new AuthorizationPolicyBuilder()
-       .RequireAuthenticatedUser()
-       .Build();
+        .RequireAuthenticatedUser()
+        .Build();
+
 });
 
 builder.Services.AddScoped<IAuthorizationHandler, InvoiceCreatorAuthorizationHandler>();
+builder.Services.AddSingleton<IAuthorizationHandler, InvoiceManagerAuthorizationHandler>();
+builder.Services.AddSingleton<IAuthorizationHandler, InvoiceAdminAuthorizationHandler>();
+
 
 var app = builder.Build();
+
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+
+    var context = services.GetRequiredService<ApplicationDbContext>();
+    context.Database.Migrate();
+
+    var seedUserPass = builder.Configuration.GetValue<string>("SeedUserPass");
+    await SeedData.Initialize(services, seedUserPass);
+}
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable disable
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,9 +8,10 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using IdentityApp.Data;
 using IdentityApp.Models;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using IdentityApp.Authorization;
+using static IdentityApp.Models.Invoice;
 
 namespace IdentityApp.Pages.Invoices
 {
@@ -21,31 +23,60 @@ namespace IdentityApp.Pages.Invoices
             UserManager<IdentityUser> userManager)
             : base(context, authorizationService, userManager)
         {
-        
         }
 
-      public Invoice Invoice { get; set; } = default!; 
+        public Invoice Invoice { get; set; }
 
         public async Task<IActionResult> OnGetAsync(int? id)
         {
-            if (id == null || Context.Invoice == null)
+            if (id == null)
             {
                 return NotFound();
             }
 
-            var invoice = await Context.Invoice.FirstOrDefaultAsync(m => m.InvoiceId == id);
-            if (invoice == null)
+            Invoice = await Context.Invoice.FirstOrDefaultAsync(m => m.InvoiceId == id);
+
+            if (Invoice == null)
             {
                 return NotFound();
             }
-           
-            var isAuthorized = await AuthorizationService.AuthorizeAsync(
+
+            var isCreator = await AuthorizationService.AuthorizeAsync(
                 User, Invoice, InvoiceOperations.Read);
+
+            var isManager = User.IsInRole(Constants.InvoiceManagersRole);
+
+            if (isCreator.Succeeded == false && isManager == false)
+                return Forbid();
+
+            return Page();
+        }
+
+        public async Task<IActionResult> OnPostAsync(int id, InvoiceStatus status)
+        {
+
+            Invoice = await Context.Invoice.FindAsync(id);
+
+            if (Invoice == null)
+                return NotFound();
+
+
+            var invoiceOperation = status == InvoiceStatus.Approved
+                ? InvoiceOperations.Approve
+                : InvoiceOperations.Reject;
+
+            var isAuthorized = await AuthorizationService.AuthorizeAsync(
+                User, Invoice, invoiceOperation);
 
             if (isAuthorized.Succeeded == false)
                 return Forbid();
 
-            return Page();
+            Invoice.Status = status;
+            Context.Invoice.Update(Invoice);
+
+            await Context.SaveChangesAsync();
+
+            return RedirectToPage("./Index");
         }
     }
 }
